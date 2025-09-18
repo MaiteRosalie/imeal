@@ -2,13 +2,11 @@ import { ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 type ModalProps = {
-  isOpen: boolean;
   onClose: () => void;
   children: ReactNode;
 };
 
-export const Modal = ({ isOpen, onClose, children }: ModalProps) => {
-  if (!isOpen) return null;
+export const Modal = ({ onClose, children }: ModalProps) => {
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AppStateProvider } from "@/state/AppStateProvider";
 
 export const metadata: Metadata = {
   title: "imeal",
@@ -13,7 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen">{children}</body>
+      <body className="min-h-screen">
+        <AppStateProvider>{children}</AppStateProvider>
+      </body>
     </html>
   );
 }
