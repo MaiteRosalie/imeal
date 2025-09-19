@@ -44,3 +44,6 @@ Tools Used:
 - Refactor components to be more modular and reusable.
 - Implement a performance solution for the amount of elements shown on the home page screen.
 - Improve the timer feature
+
+## 🚀 Vercel Deployment
+This project is hosted at [imeal-git-main-maite-rosalies-projects.vercel.app](https://imeal-git-main-maite-rosalies-projects.vercel.app)
