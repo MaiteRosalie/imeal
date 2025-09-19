@@ -1,12 +1,38 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 
 import { Header, Footer, Container, Modal } from "@/components";
 import { FeaturedCard, Card, Detail, Filter } from "@/components/HomePage";
 import { useAppState } from "@/state/AppStateProvider";
 
 export default function Home() {
-  const { recipes, q, diet, difficulty, selected, setSelected  } = useAppState();
+  const { recipes, q, diet, difficulty, selected, setSelected, activeTimers, removeTimer } = useAppState();
+
+  // Global timer checker - runs independently of modal
+  useEffect(() => {
+    const checkTimers = () => {
+      const now = Date.now();
+      activeTimers.forEach(timer => {
+        if (now >= timer.endTime) {
+          // Timer finished - show notification and remove from state
+          if (typeof window !== "undefined") {
+            if ("Notification" in window && Notification.permission === "granted") {
+              new Notification(`Timer Finished!`, {
+                body: `Recipe timer completed`,
+                icon: "/favicon.ico"
+              });
+            } else {
+              alert(`⏰ Timer finished!`);
+            }
+          }
+          removeTimer(timer.recipeId, timer.stepIndex);
+        }
+      });
+    };
+
+    const interval = setInterval(checkTimers, 1000);
+    return () => clearInterval(interval);
+  }, [activeTimers, removeTimer]);
 
   const filtered = useMemo(() => {
     return recipes.filter((r) => {

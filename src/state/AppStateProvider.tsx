@@ -1,5 +1,11 @@
 "use client";
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import { recipes, Recipe } from "@/mocks/recipes";
 
@@ -27,6 +33,13 @@ export type RatingNote = {
   note: string;
 };
 
+export type ActiveTimer = {
+  recipeId: number;
+  stepIndex: number;
+  endTime: number;
+  duration: number;
+};
+
 type AppState = {
   recipes: Recipe[];
   mealPlan: MealPlan;
@@ -45,7 +58,10 @@ type AppState = {
   difficulty: string;
   setDifficulty: (difficulty: string) => void;
   selected: Recipe | null;
-  setSelected: (el: Recipe| null) => void;
+  setSelected: (el: Recipe | null) => void;
+  activeTimers: ActiveTimer[];
+  addTimer: (timer: ActiveTimer) => void;
+  removeTimer: (recipeId: number, stepIndex: number) => void;
 };
 
 const defaultMealPlan = (): MealPlan => ({
@@ -66,14 +82,19 @@ const LS_KEYS = {
   ratings: "imeal.ratings.v1",
 };
 
-export const AppStateProvider = ({ children }: { children: React.ReactNode }) => {
+export const AppStateProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [mealPlan, setMealPlan] = useState<MealPlan>(defaultMealPlan());
   const [shopping, setShopping] = useState<ShoppingItem[]>([]);
   const [ratings, setRatings] = useState<Record<number, RatingNote>>({});
   const [q, setQ] = useState("");
   const [diet, setDiet] = useState<string>("");
   const [difficulty, setDifficulty] = useState<string>("");
-  const [selected, setSelected] = useState<any>("");
+  const [selected, setSelected] = useState<Recipe | null>(null);
+  const [activeTimers, setActiveTimers] = useState<ActiveTimer[]>([]);
 
   // load from localStorage
   useEffect(() => {
@@ -118,7 +139,9 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     setShopping((prev) => [...prev, { ...item, id }]);
   };
   const updateShoppingItem = (id: string, item: Partial<ShoppingItem>) => {
-    setShopping((prev) => prev.map((it) => (it.id === id ? { ...it, ...item } : it)));
+    setShopping((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, ...item } : it))
+    );
   };
   const removeShoppingItem = (id: string) => {
     setShopping((prev) => prev.filter((it) => it.id !== id));
@@ -128,28 +151,50 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     setRatings((prev) => ({ ...prev, [recipeId]: rn }));
   };
 
-  const value = useMemo<AppState>(() => ({
-    recipes,
-    mealPlan,
-    setMeal,
-    clearPlan,
-    shopping,
-    addShoppingItem,
-    updateShoppingItem,
-    removeShoppingItem,
-    ratings,
-    setRatingNote,
-    q,
-    setQ,
-    diet,
-    setDiet,
-    difficulty,
-    setDifficulty,
-    selected,
-    setSelected,
-  }), [mealPlan, shopping, ratings, q, diet, difficulty, selected]);
+  const addTimer = (timer: ActiveTimer) => {
+    setActiveTimers((prev) => [...prev, timer]);
+  };
 
-  return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
+  const removeTimer = (recipeId: number, stepIndex: number) => {
+    setActiveTimers((prev) =>
+      prev.filter(
+        (t) => !(t.recipeId === recipeId && t.stepIndex === stepIndex)
+      )
+    );
+  };
+
+  const value = useMemo<AppState>(
+    () => ({
+      recipes,
+      mealPlan,
+      setMeal,
+      clearPlan,
+      shopping,
+      addShoppingItem,
+      updateShoppingItem,
+      removeShoppingItem,
+      ratings,
+      setRatingNote,
+      q,
+      setQ,
+      diet,
+      setDiet,
+      difficulty,
+      setDifficulty,
+      selected,
+      setSelected,
+      activeTimers,
+      addTimer,
+      removeTimer,
+    }),
+    [mealPlan, shopping, ratings, q, diet, difficulty, selected, activeTimers]
+  );
+
+  return (
+    <AppStateContext.Provider value={value}>
+      {children}
+    </AppStateContext.Provider>
+  );
 };
 
 export const useAppState = () => {
@@ -157,5 +202,3 @@ export const useAppState = () => {
   if (!ctx) throw new Error("useAppState must be used within AppStateProvider");
   return ctx;
 };
-
-
